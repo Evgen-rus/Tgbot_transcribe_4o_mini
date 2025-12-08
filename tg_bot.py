@@ -30,7 +30,7 @@ from aiogram.types import FSInputFile, Message
 
 from audio_handler import transcribe_voice
 from config import OPENAI_API_KEY, ALLOWED_CHAT_IDS, logger
-from file_transcribe import transcribe_file_async
+from transcribe_core import transcribe_file_async
 
 PROJECT_ROOT = Path(__file__).resolve().parent
 
