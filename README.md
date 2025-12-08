@@ -47,6 +47,31 @@ python tg_bot.py
 ```
 Бот: отправьте voice или аудио (audio/document с `audio/*`), в ответ получите текст (<=4096 симв) либо `.txt`. Для крупных файлов покажет, что может занять пару минут.
 
+
+Развёртывание на Linux (systemd)
+- Установите ffmpeg: `sudo apt-get update && sudo apt-get install -y ffmpeg`.
+- Создаём юнит systemd: `sudo nano /etc/systemd/system/tgbot-transcribe.service`
+- Сервисный файл `/etc/systemd/system/tgbot-transcribe.service`:
+```
+[Unit]
+Description=Telegram Transcribe Bot
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/opt/Tgbot_transcribe_4o_mini
+Environment=PATH=/opt/Tgbot_transcribe_4o_mini/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin
+ExecStart=/opt/Tgbot_transcribe_4o_mini/venv/bin/python /opt/Tgbot_transcribe_4o_mini/tg_bot.py
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
+```
+- Применение: `sudo systemctl daemon-reload && sudo systemctl enable tgbot-transcribe && sudo systemctl start tgbot-transcribe`
+- Проверка: `sudo systemctl status tgbot-transcribe`, логи: `sudo journalctl -u tgbot-transcribe -f`
+
 Короткая инструкция для пользователей бота:
 
 1) Отправьте боту голосовое сообщение или аудио-файл (mp3, wav, m4a, ogg, webm, flac и т.п.). Один файл — одно сообщение.  
@@ -69,4 +94,3 @@ python tg_bot.py
 - Лимит Telegram на файл ~50 МБ.
 - Нужен установленный ffmpeg; иначе конвертация упадёт.
 - Лицензия: MIT (текст лицензии не включён; используйте стандартный MIT при необходимости).
-
