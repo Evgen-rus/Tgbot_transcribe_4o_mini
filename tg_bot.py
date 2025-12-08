@@ -29,7 +29,7 @@ from aiogram.filters import Command
 from aiogram.types import FSInputFile, Message
 
 from audio_handler import transcribe_voice
-from config import OPENAI_API_KEY, logger
+from config import OPENAI_API_KEY, ALLOWED_CHAT_IDS, logger
 from file_transcribe import transcribe_file_async
 
 # Лимит размера файла, который примет бот (Telegram обычно ~50 МБ для ботов)
@@ -57,10 +57,21 @@ def ensure_env() -> str:
         raise RuntimeError("TELEGRAM_BOT_TOKEN не задан в окружении/.env")
     if not OPENAI_API_KEY:
         raise RuntimeError("OPENAI_API_KEY не задан в окружении/.env")
+    if not ALLOWED_CHAT_IDS:
+        raise RuntimeError("TELEGRAM_CHAT_ID не задан или пуст — бот никого не будет обслуживать")
     return token
 
 
+def is_allowed_chat(chat_id: int) -> bool:
+    return chat_id in ALLOWED_CHAT_IDS
+
+
 async def handle_voice(message: Message, bot: Bot) -> None:
+    if not is_allowed_chat(message.chat.id):
+        logger.warning(f"[tg] Доступ запрещён для чата {message.chat.id}")
+        await message.answer("Этот бот недоступен в данном чате.")
+        return
+
     voice = message.voice
     if not voice:
         await message.answer("Не удалось получить голосовое сообщение.")
@@ -99,6 +110,11 @@ async def handle_voice(message: Message, bot: Bot) -> None:
 
 
 async def handle_audio_file(message: Message, bot: Bot) -> None:
+    if not is_allowed_chat(message.chat.id):
+        logger.warning(f"[tg] Доступ запрещён для чата {message.chat.id}")
+        await message.answer("Этот бот недоступен в данном чате.")
+        return
+
     # Поддерживаем audio и document с audio/* mime-type
     audio = message.audio
     document = message.document
@@ -182,6 +198,10 @@ async def send_result(message: Message, text: str, base_name: str, progress_mess
 def setup_routes(dp: Dispatcher, bot: Bot) -> None:
     @dp.message(Command("start"))
     async def cmd_start(message: Message) -> None:
+        if not is_allowed_chat(message.chat.id):
+            logger.warning(f"[tg] /start из неразрешённого чата {message.chat.id}")
+            await message.answer("Этот бот недоступен в данном чате.")
+            return
         await message.answer(
             "Отправь аудио или голосовое сообщение — верну транскрипцию.\n"
             "Короткие результаты — сразу текстом, длинные — файлом .txt."

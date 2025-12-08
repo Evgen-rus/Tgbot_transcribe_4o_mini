@@ -9,6 +9,12 @@ load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 # Модель для транскрибации голосовых сообщений
 TRANSCRIPTION_MODEL = os.getenv("TRANSCRIPTION_MODEL", "gpt-4o-mini-transcribe")
+# Разрешённые чаты для бота (через запятую). Если пусто — доступ запрещён всем.
+ALLOWED_CHAT_IDS: list[int] = [
+    int(chat_id.strip())
+    for chat_id in os.getenv("TELEGRAM_CHAT_ID", "").split(",")
+    if chat_id.strip()
+]
 
 # Настройки логирования
 LOGGING_LEVEL = os.getenv("LOG_LEVEL", "INFO")
