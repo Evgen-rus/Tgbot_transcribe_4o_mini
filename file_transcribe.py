@@ -14,6 +14,7 @@ import io
 import os
 import subprocess
 import tempfile
+from pathlib import Path
 from datetime import datetime
 
 from tkinter import Tk, filedialog, messagebox
@@ -23,6 +24,8 @@ import soundfile as sf
 
 from audio_handler import transcribe_voice
 from config import logger
+
+PROJECT_ROOT = Path(__file__).resolve().parent
 
 # Жёсткий лимит модели по длительности (по сообщению от OpenAI)
 MODEL_MAX_SECONDS = 1400
@@ -79,7 +82,7 @@ async def transcribe_file_async(
 
     # 1. Конвертируем исходный файл в WAV (16 кГц, моно) с помощью ffmpeg
     #    Это нужно, чтобы дальше удобно резать аудио по сэмплам через soundfile.
-    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp_wav:
+    with tempfile.NamedTemporaryFile(suffix=".wav", delete=False, dir=PROJECT_ROOT) as tmp_wav:
         tmp_wav_path = tmp_wav.name
 
     ffmpeg_cmd = [

@@ -32,6 +32,8 @@ from audio_handler import transcribe_voice
 from config import OPENAI_API_KEY, ALLOWED_CHAT_IDS, logger
 from file_transcribe import transcribe_file_async
 
+PROJECT_ROOT = Path(__file__).resolve().parent
+
 # Лимит размера файла, который примет бот (Telegram обычно ~50 МБ для ботов)
 MAX_FILE_SIZE = 50 * 1024 * 1024
 
@@ -84,7 +86,7 @@ async def handle_voice(message: Message, bot: Bot) -> None:
     file = await bot.get_file(voice.file_id)
     file_path = file.file_path
 
-    with tempfile.NamedTemporaryFile(suffix=".ogg", delete=False) as tmp:
+    with tempfile.NamedTemporaryFile(suffix=".ogg", delete=False, dir=PROJECT_ROOT) as tmp:
         tmp_path = Path(tmp.name)
 
     notice = await message.answer(
@@ -142,7 +144,7 @@ async def handle_audio_file(message: Message, bot: Bot) -> None:
     file_path = file.file_path
 
     suffix = Path(file_obj.file_name or "audio").suffix or ".audio"
-    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False, dir=PROJECT_ROOT) as tmp:
         tmp_path = Path(tmp.name)
 
     try:
@@ -176,7 +178,12 @@ async def send_result(message: Message, text: str, base_name: str, progress_mess
         return
 
     with tempfile.NamedTemporaryFile(
-        suffix=".txt", prefix=f"{base_name}_", delete=False, mode="w", encoding="utf-8"
+        suffix=".txt",
+        prefix=f"{base_name}_",
+        delete=False,
+        mode="w",
+        encoding="utf-8",
+        dir=PROJECT_ROOT,
     ) as tmp:
         tmp.write(wrapped)
         tmp_path = Path(tmp.name)
