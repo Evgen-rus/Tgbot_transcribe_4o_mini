@@ -21,8 +21,8 @@ PROJECT_ROOT = Path(__file__).resolve().parent
 # Жёсткий лимит модели по длительности (по сообщению от OpenAI)
 MODEL_MAX_SECONDS = 1400
 
-# Безопасная длина одного куска: 15 минут (900 секунд), с запасом до лимита модели
-SAFE_CHUNK_SECONDS = 900
+# Безопасная длина одного куска: 7 минут (420 секунд), уменьшаем для надёжности
+SAFE_CHUNK_SECONDS = 420
 
 # Небольшое перекрытие сегментов, чтобы сохранить связность на стыках (в секундах)
 CHUNK_OVERLAP_SECONDS = 5
@@ -30,7 +30,7 @@ CHUNK_OVERLAP_SECONDS = 5
 
 async def transcribe_file_async(
     filepath: str,
-    max_segment_concurrency: int = 3,
+    max_segment_concurrency: int = 1,
     chunk_overlap_seconds: int = CHUNK_OVERLAP_SECONDS,
 ) -> str:
     """
@@ -169,6 +169,14 @@ async def transcribe_file_async(
     # Дожидаемся всех сегментов
     if tasks:
         await asyncio.gather(*tasks)
+
+    if len(texts) != total_chunks:
+        logger.error(
+            "Получено сегментов: %s из %s. Некоторых сегментов нет в ответе.",
+            len(texts),
+            total_chunks,
+        )
+        raise ValueError("Не удалось получить текст всех сегментов")
 
     if not texts:
         raise ValueError("Не удалось получить текст ни из одного сегмента")
