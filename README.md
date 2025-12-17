@@ -69,8 +69,16 @@ RestartSec=10
 [Install]
 WantedBy=multi-user.target
 ```
-- Применение: `sudo systemctl daemon-reload && sudo systemctl enable tgbot-transcribe && sudo systemctl start tgbot-transcribe`
-- Проверка: `sudo systemctl status tgbot-transcribe`, логи: `sudo journalctl -u tgbot-transcribe -f`
+- Применение: 
+```
+sudo systemctl daemon-reload
+sudo systemctl enable tgbot-transcribe
+sudo systemctl start tgbot-transcribe`
+```
+- Проверка: 
+`sudo systemctl status tgbot-transcribe`, 
+логи: 
+`sudo journalctl -u tgbot-transcribe -f`
 
 Короткая инструкция для пользователей бота:
 
