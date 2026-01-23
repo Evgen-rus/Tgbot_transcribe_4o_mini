@@ -25,6 +25,7 @@ import textwrap
 from pathlib import Path
 
 from aiogram import Bot, Dispatcher, F
+from aiogram.exceptions import TelegramBadRequest
 from aiogram.filters import Command
 from aiogram.types import FSInputFile, Message
 
@@ -83,21 +84,28 @@ async def handle_voice(message: Message, bot: Bot) -> None:
         await message.answer("Файл слишком большой. Ограничение ~50 МБ.")
         return
 
-    file = await bot.get_file(voice.file_id)
-    file_path = file.file_path
-
-    with tempfile.NamedTemporaryFile(suffix=".ogg", delete=False, dir=PROJECT_ROOT) as tmp:
-        tmp_path = Path(tmp.name)
-
-    notice = await message.answer(
-        "Файл принят, начинаю транскрибацию. Если сообщение длинное, может потребоваться до пары минут."
-    )
-
     try:
+        file = await bot.get_file(voice.file_id)
+        file_path = file.file_path
+
+        with tempfile.NamedTemporaryFile(suffix=".ogg", delete=False, dir=PROJECT_ROOT) as tmp:
+            tmp_path = Path(tmp.name)
+
+        notice = await message.answer(
+            "Файл принят, начинаю транскрибацию. Если сообщение длинное, может потребоваться до пары минут."
+        )
         await bot.download_file(file_path, destination=tmp_path)
         # Используем ту же логику, что и для файлов: она конвертирует через ffmpeg,
         # режет на сегменты и обрабатывает параллельно, что надёжнее для длинных voice.
         text = await transcribe_file_async(str(tmp_path))
+    except TelegramBadRequest as e:
+        if "file is too big" in str(e).lower():
+            await message.answer(
+                "Файл слишком большой для Telegram Bot API. "
+                "Попробуйте отправить файл меньшего размера или как голосовое."
+            )
+            return
+        raise
     except Exception as e:  # noqa: BLE001
         logger.error(f"[tg] Ошибка при транскрибации voice: {e}")
         await message.answer("Произошла ошибка при транскрибации голосового сообщения.")
@@ -140,17 +148,25 @@ async def handle_audio_file(message: Message, bot: Bot) -> None:
         notice_text += " Файл довольно большой, это может занять пару минут."
     notice = await message.answer(notice_text)
 
-    file = await bot.get_file(file_obj.file_id)
-    file_path = file.file_path
-
-    suffix = Path(file_obj.file_name or "audio").suffix or ".audio"
-    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False, dir=PROJECT_ROOT) as tmp:
-        tmp_path = Path(tmp.name)
-
     try:
+        file = await bot.get_file(file_obj.file_id)
+        file_path = file.file_path
+
+        suffix = Path(file_obj.file_name or "audio").suffix or ".audio"
+        with tempfile.NamedTemporaryFile(suffix=suffix, delete=False, dir=PROJECT_ROOT) as tmp:
+            tmp_path = Path(tmp.name)
+
         await bot.download_file(file_path, destination=tmp_path)
         # Используем готовую логику разрезания и параллельной отправки
         text = await transcribe_file_async(str(tmp_path))
+    except TelegramBadRequest as e:
+        if "file is too big" in str(e).lower():
+            await message.answer(
+                "Файл слишком большой для Telegram Bot API. "
+                "Попробуйте отправить файл меньшего размера или как голосовое."
+            )
+            return
+        raise
     except Exception as e:  # noqa: BLE001
         logger.error(f"[tg] Ошибка при транскрибации файла {tmp_path}: {e}")
         await message.answer("Произошла ошибка при транскрибации файла.")
