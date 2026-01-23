@@ -8,7 +8,7 @@
 """
 
 import asyncio
-from tkinter import Tk, filedialog, messagebox
+from tkinter import Tk, filedialog
 
 from config import logger
 from transcribe_core import save_transcription, transcribe_file_async
@@ -52,20 +52,13 @@ def main() -> None:
         text = asyncio.run(transcribe_file_async(filepath))
     except Exception as e:
         logger.error(f"Ошибка при транскрибации файла: {e}")
-        try:
-            messagebox.showerror("Ошибка транскрибации", str(e))
-        except Exception:
-            pass
         print(f"Ошибка транскрибации: {e}")
         return
 
     txt_path = save_transcription(text, filepath)
     print(f"Транскрипция сохранена в файл:\n{txt_path}")
 
-    try:
-        messagebox.showinfo("Готово", f"Текст сохранён в файл:\n{txt_path}")
-    except Exception:
-        pass
+    print("Готово.")
 
 
 if __name__ == "__main__":
