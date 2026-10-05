@@ -29,10 +29,15 @@ async def transcribe_voice(voice_data: bytes, file_name: str = "voice.ogg", lang
         logger.info(f"Начинаю транскрибацию голосового сообщения, размер: {len(voice_data)} байт")
         
         # Отправляем запрос на транскрибацию
+        language_options = (
+            {"extra_body": {"languages": [language]}}
+            if TRANSCRIPTION_MODEL == "gpt-transcribe"
+            else {"language": language}
+        )
         transcript = await client.audio.transcriptions.create(
             model=TRANSCRIPTION_MODEL,
             file=(file_name, voice_data),
-            language=language
+            **language_options,
         )
         
         # Получаем и логируем результат
@@ -43,7 +48,7 @@ async def transcribe_voice(voice_data: bytes, file_name: str = "voice.ogg", lang
         
     except Exception as e:
         # Если произошла ошибка с моделью, пробуем запасную модель
-        if "invalid model ID" in str(e):
+        if TRANSCRIPTION_MODEL != "gpt-transcribe" and "invalid model ID" in str(e):
             logger.warning(f"Модель {TRANSCRIPTION_MODEL} недоступна, используем whisper-1")
             try:
                 transcript = await client.audio.transcriptions.create(
@@ -60,4 +65,4 @@ async def transcribe_voice(voice_data: bytes, file_name: str = "voice.ogg", lang
                 raise
         else:
             logger.error(f"Ошибка при транскрибации: {e}")
-            raise 
+            raise

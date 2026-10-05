@@ -8,7 +8,7 @@ load_dotenv()
 # Получение токенов и настроек из переменных окружения
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 # Модель для транскрибации голосовых сообщений
-TRANSCRIPTION_MODEL = os.getenv("TRANSCRIPTION_MODEL", "gpt-4o-mini-transcribe")
+TRANSCRIPTION_MODEL = os.getenv("TRANSCRIPTION_MODEL", "gpt-transcribe")
 # Разрешённые чаты для бота (через запятую). Если пусто — доступ запрещён всем.
 ALLOWED_CHAT_IDS: list[int] = [
     int(chat_id.strip())

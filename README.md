@@ -8,7 +8,7 @@
 Требования
 - Python 3.10+
 - ffmpeg в PATH
-- Учётки/ключи: `OPENAI_API_KEY`, модель `TRANSCRIPTION_MODEL` (по умолчанию `gpt-4o-mini-transcribe`), для бота `TELEGRAM_BOT_TOKEN`.
+- Учётки/ключи: `OPENAI_API_KEY`, модель `TRANSCRIPTION_MODEL` (по умолчанию `gpt-transcribe`), для бота `TELEGRAM_BOT_TOKEN`.
 
 Установка
 ```
@@ -26,7 +26,7 @@ pip install -r requirements.txt
 Создайте `.env` (можно по образцу `.env.example`):
 ```
 OPENAI_API_KEY=...
-TRANSCRIPTION_MODEL=gpt-4o-mini-transcribe
+TRANSCRIPTION_MODEL=gpt-transcribe
 LOG_LEVEL=INFO
 ENABLE_DIALOG_LOGGING=true
 TELEGRAM_BOT_TOKEN=...   # нужно только для tg_bot.py
